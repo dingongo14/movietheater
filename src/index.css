@@ -169,12 +169,27 @@ main {
 .product-preview {
   padding: 10px 16px;
   margin: 20px 0;
+  position: relative;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.product-preview::after {
+  content: "";
+  position: absolute;
+  bottom: -20px; /* compensa o margin */
+  left: 0;
+  right: 0;
   border-bottom: 1px solid #3a3a3a;
 }
+
 .product-preview img {
   max-width: 100%;
 }
+
 .product-preview:hover {
+  transform: translateY(-8px) scale(1.03);
   box-shadow: 1px 3px 5px rgba(255, 255, 255, 0.1);
 }
 

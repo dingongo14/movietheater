@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- fundo azul arredondado -->
+  <rect width="100" height="100" rx="20" fill="#006eff"/>
+
+  <!-- corpo claquete branco -->
+  <rect x="18" y="52" width="64" height="34" rx="3" fill="white"/>
+
+  <!-- topo da claquete branco -->
+  <rect x="18" y="38" width="64" height="16" rx="3" fill="white"/>
+
+  <!-- bloco diagonal esquerdo no topo -->
+  <polygon points="18,38 44,38 36,54 18,54" fill="#004db8"/>
+
+  <!-- bloco diagonal direito no topo -->
+  <polygon points="56,38 82,38 82,54 64,54" fill="#004db8"/>
+
+  <!-- linhas divisórias no corpo -->
+  <line x1="18" y1="64" x2="82" y2="64" stroke="#e0ecff" stroke-width="1.5"/>
+  <line x1="18" y1="74" x2="82" y2="74" stroke="#e0ecff" stroke-width="1.5"/>
+
+  <!-- triângulo play azul -->
+  <polygon points="38,55 38,84 68,69" fill="#006eff"/>
+</svg>
