@@ -1,13 +1,89 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import emailjs from "@emailjs/browser";
+
+// ⚙️ Configura as tuas credenciais EmailJS aqui
+const EMAILJS_SERVICE_ID = "service_8odvzrd";
+const EMAILJS_TEMPLATE_ID = "template_ktt5h7b";
+const EMAILJS_PUBLIC_KEY = "dZLmqdCfIRKorxKfC";
 
 function Footer() {
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState(null); // null | "loading" | "success" | "error" | "duplicate" | "invalid"
+  const [subscribers, setSubscribers] = useState([]);
 
-  const handleNewsletter = () => {
-    if (!email) return;
-    alert(`Subscrito com sucesso: ${email}`);
-    setEmail("");
+  // Carrega lista guardada no localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("cine_newsletter_emails");
+    if (saved) setSubscribers(JSON.parse(saved));
+  }, []);
+
+  // Validação de e-mail
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+
+  const handleNewsletter = async () => {
+    // 1. Validação
+    if (!email.trim()) return;
+
+    if (!isValidEmail(email)) {
+      setStatus("invalid");
+      setTimeout(() => setStatus(null), 3000);
+      return;
+    }
+
+    // 2. Verificar duplicado
+    if (subscribers.includes(email.trim().toLowerCase())) {
+      setStatus("duplicate");
+      setTimeout(() => setStatus(null), 3000);
+      return;
+    }
+
+    setStatus("loading");
+
+    try {
+      // 3. Enviar via EmailJS
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        { user_email: email.trim() },
+        EMAILJS_PUBLIC_KEY,
+      );
+
+      // 4. Guardar no localStorage
+      const updated = [...subscribers, email.trim().toLowerCase()];
+      setSubscribers(updated);
+      localStorage.setItem("cine_newsletter_emails", JSON.stringify(updated));
+
+      setStatus("success");
+      setEmail("");
+    } catch {
+      setStatus("error");
+    } finally {
+      setTimeout(() => setStatus(null), 4000);
+    }
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleNewsletter();
+  };
+
+  // Mensagens de feedback
+  const feedbackConfig = {
+    loading: { msg: "A enviar...", color: "#aaa", icon: "⏳" },
+    success: { msg: "Subscrito com sucesso!", color: "#4caf50", icon: "✅" },
+    error: {
+      msg: "Erro ao enviar. Tenta novamente.",
+      color: "#f44336",
+      icon: "❌",
+    },
+    duplicate: {
+      msg: "Este e-mail já está inscrito.",
+      color: "#ff9800",
+      icon: "⚠️",
+    },
+    invalid: { msg: "E-mail inválido.", color: "#f44336", icon: "❌" },
+  };
+
+  const feedback = feedbackConfig[status];
 
   return (
     <footer className="footer">
@@ -28,7 +104,7 @@ function Footer() {
           <a href="/search?q=comédia">Comédia</a>
         </nav>
 
-        {/* Redes sociais */}
+        {/* Redes sociais — mantém o teu bloco existente */}
         <div className="footer__social">
           <a
             href={`https://wa.me/244945090298?text=${encodeURIComponent("Olá, vim pelo CineNgongo e gostaria de saber mais informações.")}`}
@@ -74,11 +150,36 @@ function Footer() {
             </svg>
             LinkedIn
           </a>
+          {/* GitHub */}
+          <a
+            href="https://github.com/dingongo14"
+            target="_blank"
+            rel="noreferrer"
+            className="footer__social-link"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+            </svg>
+            GitHub
+          </a>
+
+          {/* Threads */}
+          <a
+            href="https://www.threads.net/@alberto.david.716"
+            target="_blank"
+            rel="noreferrer"
+            className="footer__social-link"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 012.581.188v-.38c0-.88-.244-1.562-.724-2.023-.46-.46-1.16-.71-2.05-.71-1.32 0-2.278.499-2.686 1.405l-1.92-.668C8.753 5.8 10.5 4.89 12.59 4.89c1.367 0 2.547.37 3.41 1.068.878.712 1.376 1.77 1.376 3.025v5.478c0 .668.058 1.325.17 1.958l-1.934.345a10.3 10.3 0 01-.122-1.108c-.86.974-2.044 1.538-3.496 1.617-.1.005-.198.008-.298.008zm.483-5.564c1.217-.065 2.114-.5 2.666-1.292.509-.733.734-1.74.669-2.995a11.918 11.918 0 00-2.315-.207c-.973.057-1.749.33-2.233.784-.43.403-.647.942-.615 1.516.03.563.317 1.038.811 1.357.47.305 1.076.46 1.714.46l-.007-.623z" />
+            </svg>
+            Threads
+          </a>
         </div>
 
         {/* Newsletter */}
         <div className="footer__newsletter">
-          <p className="footer__newsletter-title">Newsletter{"  "}</p>
+          <p className="footer__newsletter-title">Newsletter</p>
           <div className="footer__newsletter-form">
             <input
               type="email"
@@ -86,14 +187,32 @@ function Footer() {
               className="footer__newsletter-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={status === "loading"}
             />
             <button
               className="footer__newsletter-btn"
               onClick={handleNewsletter}
+              disabled={status === "loading"}
             >
-              Inscrever
+              {status === "loading" ? "..." : "Inscrever"}
             </button>
           </div>
+
+          {/* Mensagem animada de feedback */}
+          {feedback && (
+            <p
+              className="footer__newsletter-feedback"
+              style={{
+                color: feedback.color,
+                marginTop: "8px",
+                fontSize: "0.85rem",
+                animation: "fadeInUp 0.3s ease",
+              }}
+            >
+              {feedback.icon} {feedback.msg}
+            </p>
+          )}
         </div>
       </div>
 
@@ -117,6 +236,14 @@ function Footer() {
           </a>
         </p>
       </div>
+
+      {/* Animação CSS */}
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </footer>
   );
 }
