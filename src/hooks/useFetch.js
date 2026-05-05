@@ -42,6 +42,7 @@ function useFetch(endpoint, params = {}) {
         setIsError(true);
         setIsLoading(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpoint, page, paramsKey]);
 
   return { data, isLoading, isError, page, setPage, totalPages };
