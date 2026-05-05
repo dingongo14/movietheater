@@ -34,7 +34,6 @@ const MENUS = [
   { id: "series", label: "Séries" },
 ];
 
-// ✅ Recebe onSelectItem do App.jsx
 export function Navbar({ onSelectItem }) {
   const { openDropdown, toggleDropdown, navRef } = useDropdown();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -45,6 +44,18 @@ export function Navbar({ onSelectItem }) {
   const suggestionsRef = useRef(null);
   const navigate = useNavigate();
   const debouncedValue = useDebounce(inputValue, 400);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     if (debouncedValue.trim().length < 2) {
@@ -100,130 +111,187 @@ export function Navbar({ onSelectItem }) {
   }, []);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (inputValue.trim() === "") return;
     navigate(`/search?q=${encodeURIComponent(inputValue)}`);
     setInputValue("");
     setSearchOpen(false);
     setShowSuggestions(false);
+    setMenuOpen(false);
   };
 
-  // ✅ Abre o modal em vez de navegar para uma rota
   const handleSuggestionClick = (item) => {
     onSelectItem(item);
     setInputValue("");
     setSearchOpen(false);
     setShowSuggestions(false);
+    setMenuOpen(false);
   };
 
-  return (
-    <nav ref={navRef}>
-      <h1>
-        <a href="/">🎬CineNgongo</a>
-      </h1>
-      <div className="menus">
-        <a href="/">Home</a>
-        {MENUS.map(({ id, label }) => (
-          <div className="dropdown" key={id}>
-            <button onClick={() => toggleDropdown(id)} className="dropbtn">
-              {label}
-              <ChevronIcon isOpen={openDropdown === id} />
-            </button>
-            {openDropdown === id && (
-              <div className="dropdown-content">
-                {CATEGORIAS.map((cat) => (
-                  <a
-                    key={cat.id}
-                    href={`/genre/${cat.id}?type=${id}`}
-                    onClick={() => toggleDropdown(null)}
-                  >
-                    {cat.label}
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+  const closeAll = () => {
+    toggleDropdown(null);
+    setMenuOpen(false);
+  };
 
-        {searchOpen && (
-          <div className="search-wrapper" ref={suggestionsRef}>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="search"
-                placeholder="Pesquisar filmes e séries"
-                autoFocus
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onFocus={() =>
-                  suggestions.length > 0 && setShowSuggestions(true)
+  const SuggestionsDropdown = () =>
+    showSuggestions ? (
+      <div className="suggestions">
+        {!isLoadingSuggestions &&
+          suggestions.map((item) => (
+            <div
+              key={`${item.tipo}-${item.id}`}
+              className="suggestion-item"
+              onClick={() => handleSuggestionClick(item)}
+            >
+              <img
+                src={
+                  item.poster_path
+                    ? `${IMG_URL}${item.poster_path}`
+                    : "/placeholder.jpg"
                 }
+                alt={item.title}
               />
-            </form>
-
-            {showSuggestions && (
-              <div className="suggestions">
-                {/* ✅ Apenas UM map — bloco duplicado removido */}
-                {!isLoadingSuggestions &&
-                  suggestions.map((item) => (
-                    <div
-                      key={`${item.tipo}-${item.id}`}
-                      className="suggestion-item"
-                      onClick={() => handleSuggestionClick(item)}
-                    >
-                      <img
-                        src={
-                          item.poster_path
-                            ? `${IMG_URL}${item.poster_path}`
-                            : "/placeholder.jpg"
-                        }
-                        alt={item.title}
-                      />
-                      <div className="suggestion-info">
-                        <span className="suggestion-title">{item.title}</span>
-                        <span className="suggestion-year">
-                          {
-                            (item.release_date || item.first_air_date)?.split(
-                              "-",
-                            )[0]
-                          }
-                        </span>
-                      </div>
-                      <span
-                        className="suggestion-badge"
-                        style={{
-                          background:
-                            item.tipo === "serie" ? "#1a6eff22" : "#ff4a4a22",
-                          color: item.tipo === "serie" ? "#006eff" : "#e24b4a",
-                          fontSize: 11,
-                          fontWeight: 500,
-                          padding: "2px 7px",
-                          borderRadius: 4,
-                          marginLeft: "auto",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {item.tipo === "serie" ? "Série" : "Filme"}
-                      </span>
-                      <span className="suggestion-rating">
-                        ⭐ {item.vote_average?.toFixed(1)}
-                      </span>
-                    </div>
-                  ))}
-
-                {!isLoadingSuggestions && suggestions.length > 0 && (
-                  <div className="suggestion-all" onClick={handleSubmit}>
-                    Ver todos os resultados para "<strong>{inputValue}</strong>"
-                  </div>
-                )}
+              <div className="suggestion-info">
+                <span className="suggestion-title">{item.title}</span>
+                <span className="suggestion-year">
+                  {(item.release_date || item.first_air_date)?.split("-")[0]}
+                </span>
               </div>
-            )}
+              <span
+                className="suggestion-badge"
+                style={{
+                  background: item.tipo === "serie" ? "#1a6eff22" : "#ff4a4a22",
+                  color: item.tipo === "serie" ? "#006eff" : "#e24b4a",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  padding: "2px 7px",
+                  borderRadius: 4,
+                  marginLeft: "auto",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.tipo === "serie" ? "Série" : "Filme"}
+              </span>
+              <span className="suggestion-rating">
+                ⭐ {item.vote_average?.toFixed(1)}
+              </span>
+            </div>
+          ))}
+
+        {!isLoadingSuggestions && suggestions.length > 0 && (
+          <div className="suggestion-all" onClick={handleSubmit}>
+            Ver todos os resultados para "<strong>{inputValue}</strong>"
           </div>
         )}
-
-        <button onClick={searchOpen ? handleSubmit : () => setSearchOpen(true)}>
-          <FaSearch />
-        </button>
       </div>
-    </nav>
+    ) : null;
+
+  return (
+    <>
+      <nav ref={navRef}>
+        <h1>
+          <a href="/">🎬CineNgongo</a>
+        </h1>
+
+        <button
+          className={`hamburger ${menuOpen ? "active" : ""}`}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label="Abrir menu"
+          aria-expanded={menuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <div className={`menus ${menuOpen ? "mobile-open" : ""}`}>
+          {/* ✅ Search no topo do drawer mobile — com botão */}
+          {menuOpen && (
+            <div
+              className="search-wrapper search-wrapper--top"
+              ref={suggestionsRef}
+            >
+              <form className="search-input-row" onSubmit={handleSubmit}>
+                <input
+                  type="search"
+                  placeholder="Pesquisar filmes e séries"
+                  autoFocus
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onFocus={() =>
+                    suggestions.length > 0 && setShowSuggestions(true)
+                  }
+                />
+                <button
+                  type="submit"
+                  className="search-btn-mobile"
+                  aria-label="Pesquisar"
+                >
+                  <FaSearch />
+                </button>
+              </form>
+              <SuggestionsDropdown />
+            </div>
+          )}
+
+          <a href="/" onClick={closeAll}>
+            Home
+          </a>
+
+          {MENUS.map(({ id, label }) => (
+            <div className="dropdown" key={id}>
+              <button onClick={() => toggleDropdown(id)} className="dropbtn">
+                {label}
+                <ChevronIcon isOpen={openDropdown === id} />
+              </button>
+
+              {(openDropdown === id || menuOpen) && (
+                <div className="dropdown-content">
+                  {CATEGORIAS.map((cat) => (
+                    <a
+                      key={cat.id}
+                      href={`/genre/${cat.id}?type=${id}`}
+                      onClick={closeAll}
+                    >
+                      {cat.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* ✅ Search no desktop — comportamento original mantido */}
+          {!menuOpen && searchOpen && (
+            <div className="search-wrapper" ref={suggestionsRef}>
+              <form onSubmit={handleSubmit}>
+                <input
+                  type="search"
+                  placeholder="Pesquisar filmes e séries"
+                  autoFocus
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onFocus={() =>
+                    suggestions.length > 0 && setShowSuggestions(true)
+                  }
+                />
+              </form>
+              <SuggestionsDropdown />
+            </div>
+          )}
+          {!menuOpen && (
+            <button
+              onClick={searchOpen ? handleSubmit : () => setSearchOpen(true)}
+            >
+              <FaSearch />
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {menuOpen && (
+        <div className="nav-overlay" onClick={() => setMenuOpen(false)} />
+      )}
+    </>
   );
 }
