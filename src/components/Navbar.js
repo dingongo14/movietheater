@@ -34,7 +34,8 @@ const MENUS = [
   { id: "series", label: "Séries" },
 ];
 
-export function Navbar() {
+// ✅ Recebe onSelectItem do App.jsx
+export function Navbar({ onSelectItem }) {
   const { openDropdown, toggleDropdown, navRef } = useDropdown();
   const [searchOpen, setSearchOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -45,9 +46,6 @@ export function Navbar() {
   const navigate = useNavigate();
   const debouncedValue = useDebounce(inputValue, 400);
 
-  // src/hooks/useFetch.js — sem alterações
-
-  // Navbar.jsx — atualiza o useEffect das sugestões:
   useEffect(() => {
     if (debouncedValue.trim().length < 2) {
       setSuggestions([]);
@@ -71,10 +69,9 @@ export function Navbar() {
         const series = tvRes.data.results.map((s) => ({
           ...s,
           tipo: "serie",
-          title: s.name, // ✅ séries usam "name" em vez de "title"
+          title: s.name,
         }));
 
-        // junta, ordena por popularidade e limita a 6
         const combinados = [...filmes, ...series]
           .sort((a, b) => b.popularity - a.popularity)
           .slice(0, 6);
@@ -105,17 +102,15 @@ export function Navbar() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim() === "") return;
-
     navigate(`/search?q=${encodeURIComponent(inputValue)}`);
     setInputValue("");
     setSearchOpen(false);
     setShowSuggestions(false);
   };
 
+  // ✅ Abre o modal em vez de navegar para uma rota
   const handleSuggestionClick = (item) => {
-    const rota =
-      item.tipo === "serie" ? `/series/${item.id}` : `/movies/${item.id}`;
-    navigate(rota);
+    onSelectItem(item);
     setInputValue("");
     setSearchOpen(false);
     setShowSuggestions(false);
@@ -139,7 +134,7 @@ export function Navbar() {
                 {CATEGORIAS.map((cat) => (
                   <a
                     key={cat.id}
-                    href={`/genre/${cat.id}?type=${id}`} // ✅ passa "filmes" ou "series"
+                    href={`/genre/${cat.id}?type=${id}`}
                     onClick={() => toggleDropdown(null)}
                   >
                     {cat.label}
@@ -167,6 +162,7 @@ export function Navbar() {
 
             {showSuggestions && (
               <div className="suggestions">
+                {/* ✅ Apenas UM map — bloco duplicado removido */}
                 {!isLoadingSuggestions &&
                   suggestions.map((item) => (
                     <div
@@ -182,7 +178,6 @@ export function Navbar() {
                         }
                         alt={item.title}
                       />
-
                       <div className="suggestion-info">
                         <span className="suggestion-title">{item.title}</span>
                         <span className="suggestion-year">
@@ -193,8 +188,6 @@ export function Navbar() {
                           }
                         </span>
                       </div>
-
-                      {/* ✅ badge para distinguir */}
                       <span
                         className="suggestion-badge"
                         style={{
@@ -211,40 +204,8 @@ export function Navbar() {
                       >
                         {item.tipo === "serie" ? "Série" : "Filme"}
                       </span>
-
                       <span className="suggestion-rating">
                         ⭐ {item.vote_average?.toFixed(1)}
-                      </span>
-                    </div>
-                  ))}
-                {!isLoadingSuggestions &&
-                  suggestions.map((movie) => (
-                    <div
-                      key={movie.id}
-                      className="suggestion-item"
-                      onClick={() => handleSuggestionClick(movie)}
-                    >
-                      {/* Poster */}
-                      <img
-                        src={
-                          movie.poster_path
-                            ? `${IMG_URL}${movie.poster_path}`
-                            : "/placeholder.jpg"
-                        }
-                        alt={movie.title}
-                      />
-
-                      {/* Info */}
-                      <div className="suggestion-info">
-                        <span className="suggestion-title">{movie.title}</span>
-                        <span className="suggestion-year">
-                          {movie.release_date?.split("-")[0]}
-                        </span>
-                      </div>
-
-                      {/* Avaliação */}
-                      <span className="suggestion-rating">
-                        ⭐ {movie.vote_average?.toFixed(1)}
                       </span>
                     </div>
                   ))}

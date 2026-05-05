@@ -5,12 +5,14 @@ import SkeletonProductsList from "../components/SkeletonProductsList";
 import ProductsList from "../components/ProductsList";
 import Pagination from "../components/Pagination";
 import SearchErrorModal from "../components/SearchErrorModal";
+import ProductDetails from "../components/ProductDetails";
 import useFetch from "../hooks/useFetch";
 
 function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q");
   const navigate = useNavigate();
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const {
     data: rawData,
@@ -19,12 +21,8 @@ function Search() {
     page,
     setPage,
     totalPages,
-  } = useFetch(
-    "/search/multi", // 👈 era "/search/movie"
-    { query },
-  );
+  } = useFetch("/search/multi", { query });
 
-  // Filtra pessoas — mantém só filmes e séries
   const data = rawData.filter(
     (item) => item.media_type === "movie" || item.media_type === "tv",
   );
@@ -70,14 +68,21 @@ function Search() {
                 <span style={{ color: "var(--primary-color)" }}>"{query}"</span>
               </>
             }
+            onItemClick={setSelectedItem}
           />
-
           <Pagination
             page={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
         </>
+      )}
+
+      {selectedItem && (
+        <ProductDetails
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </main>
   );

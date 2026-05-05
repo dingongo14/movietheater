@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { IMG_URL } from "../services/tmdb";
 
-function ProductsList({ title, movies, mediaType }) {
+function ProductsList({ title, movies, mediaType, onItemClick }) {
   return (
     <>
       <h1>{title}</h1>
@@ -11,16 +11,22 @@ function ProductsList({ title, movies, mediaType }) {
           const itemYear = (movie.release_date ?? movie.first_air_date)?.split(
             "-",
           )[0];
+          const itemType =
+            mediaType ?? movie.media_type ?? (movie.title ? "movie" : "tv");
           const itemLink =
-            (mediaType ??
-              movie.media_type ??
-              (movie.title ? "movie" : "tv")) === "tv"
-              ? `/series/${movie.id}`
-              : `/movies/${movie.id}`;
+            itemType === "tv" ? `/series/${movie.id}` : `/movies/${movie.id}`;
 
           return (
-            <Link key={movie.id ?? index} to={itemLink}>
-              <div className="product-preview">
+            <div
+              key={movie.id ?? index}
+              className="product-preview"
+              onClick={() => onItemClick?.(movie)}
+              style={{ cursor: onItemClick ? "pointer" : "default" }}
+            >
+              <Link
+                to={itemLink}
+                onClick={(e) => onItemClick && e.preventDefault()}
+              >
                 <img
                   src={
                     movie.poster_path
@@ -32,8 +38,8 @@ function ProductsList({ title, movies, mediaType }) {
                 />
                 <p>Ano: {itemYear}</p>
                 <i>Avaliação: ⭐ {movie.vote_average?.toFixed(1)}</i>
-              </div>
-            </Link>
+              </Link>
+            </div>
           );
         })}
       </div>

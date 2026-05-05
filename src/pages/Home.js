@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import ProductsList from "../components/ProductsList";
 import Pagination from "../components/Pagination";
 import useFetch from "../hooks/useFetch";
 import SkeletonProductList from "../components/SkeletonProductsList";
 import { ErrorMessage } from "../components/ErrorMessage";
+import ProductDetails from "../components/ProductDetails";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -15,6 +16,8 @@ function shuffle(arr) {
 }
 
 function Home() {
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const {
     data: movies,
     isLoading: loadingMovies,
@@ -58,6 +61,7 @@ function Home() {
           <ProductsList
             movies={combined}
             title="Filmes e Séries em destaques"
+            onItemClick={setSelectedItem}
           />
           <Pagination
             page={page}
@@ -65,6 +69,13 @@ function Home() {
             onPageChange={handlePageChange}
           />
         </>
+      )}
+
+      {selectedItem && (
+        <ProductDetails
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </main>
   );

@@ -6,6 +6,7 @@ import SkeletonProductsList from "../components/SkeletonProductsList";
 import ProductsList from "../components/ProductsList";
 import Pagination from "../components/Pagination";
 import SearchErrorModal from "../components/SearchErrorModal";
+import ProductDetails from "../components/ProductDetails";
 import useFetch from "../hooks/useFetch";
 
 const NOMES_GENEROS = {
@@ -34,6 +35,7 @@ function Genre() {
   const { genreId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const type = searchParams.get("type");
   const endpoint = type === "series" ? "/discover/tv" : "/discover/movie";
@@ -81,13 +83,24 @@ function Genre() {
 
       {data.length > 0 && (
         <>
-          <ProductsList movies={data} title={titulo} />
+          <ProductsList
+            movies={data}
+            title={titulo}
+            onItemClick={setSelectedItem}
+          />
           <Pagination
             page={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
         </>
+      )}
+
+      {selectedItem && (
+        <ProductDetails
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </main>
   );
