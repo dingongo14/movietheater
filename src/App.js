@@ -6,6 +6,7 @@ import { Navbar } from "./components/Navbar";
 import Genre from "./pages/Genre";
 import Footer from "./components/Footer";
 import ProductDetails from "./components/ProductDetails";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/genre/:genreId" element={<Genre />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
 
