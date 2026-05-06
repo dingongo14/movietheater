@@ -1063,7 +1063,7 @@ option {
   /* Sugestões */
   .suggestions {
     min-width: unset;
-    width: calc(100vw - 32px);
+    width: calc(100vw - 100px);
     left: 50%;
     transform: translateX(-50%);
     max-height: 55vh;
