@@ -140,7 +140,7 @@ function Footer() {
             Instagram
           </a>
           <a
-            href="www.linkedin.com/in/alberto-david-a75957245"
+            href="https://www.linkedin.com/in/alberto-david-a75957245"
             target="_blank"
             rel="noreferrer"
             className="footer__social-link"
