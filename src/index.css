@@ -31,11 +31,11 @@ nav {
 
 nav h1 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
 }
 
 nav h1 a {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--primary-color);
 }
 
